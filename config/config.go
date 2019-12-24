@@ -7,10 +7,12 @@ import (
 
 //Configuration  returns configs
 type Configuration struct {
+	StartDate    string
 	Interval     uint64
 	TimeAddition uint64
 }
 
+//PrepareConfigs prepares config from config.json
 func PrepareConfigs(configFile string) (Configuration, error) {
 
 	file, _ := os.Open(configFile)
@@ -22,5 +24,5 @@ func PrepareConfigs(configFile string) (Configuration, error) {
 		return configuration, err
 	}
 	return configuration, nil
-	
+
 }

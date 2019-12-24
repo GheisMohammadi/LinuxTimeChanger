@@ -6,15 +6,44 @@ import (
 	"os/exec"
 	"syscall"
 	"time"
-
 	Configs "timechanger/config"
+
+	ntp "github.com/beevik/ntp"
 )
 
 var configs Configs.Configuration
 
+var ntpTime time.Time
+
 func main() {
 
 	configs, _ = Configs.PrepareConfigs("config.json")
+
+	//Setup ntp
+	var errSetupNTP error
+	ntpTime, errSetupNTP = ntp.Time("time.apple.com")
+	if errSetupNTP != nil {
+		fmt.Println("setup ntp error: ", errSetupNTP)
+	}
+	fmt.Println("Current real local time: ", ntpTime.Local())
+	fmt.Println("Current real UTC time: ", ntpTime.UTC())
+	//diff := ntpTime.Local().Sub(ntpTime.UTC())
+	//println("Time diff (local-UTC) is: ", diff.Round)
+
+	//Set Start Date
+	layout := "2006-01-02 15:04:05"
+	startDateStr := configs.StartDate
+	startDate, err := time.Parse(layout, startDateStr)
+	if err != nil {
+		fmt.Println("Start time parse error:", err)
+	}
+	//startDate = startDate.Add(diff)
+	fmt.Println("Start date: ", startDate)
+
+	//Set system time on start date
+	SetSystemDateUsingExec(startDate)
+
+	//startDate := new time.Date(configs.StartDate)
 	initTimer(configs.Interval, configs.TimeAddition)
 
 }
@@ -33,6 +62,12 @@ func initTimer(interval uint64, timeAddition uint64) {
 			err := SetSystemDateUsingExec(newTime)
 			if err != nil {
 				fmt.Printf("Error: %s", err.Error())
+			}
+
+			currentReadTime := ntpTime.UTC()
+			if newTime.Unix() > currentReadTime.Unix() {
+				println("Reached current time!")
+				break
 			}
 		}
 	}
