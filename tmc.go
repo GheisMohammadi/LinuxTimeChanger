@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"fmt"
@@ -7,14 +7,14 @@ import (
 	"syscall"
 	"time"
 
-	Configs "github.com/timechanger/config"
+	Configs "timechanger/config"
 )
 
 var configs Configs.Configuration
 
 func main() {
 
-	configs, _ = Configs.PrepareConfigs()
+	configs, _ = Configs.PrepareConfigs("config.json")
 	initTimer(configs.Interval, configs.TimeAddition)
 
 }
@@ -22,12 +22,18 @@ func main() {
 func initTimer(interval uint64, timeAddition uint64) {
 
 	//go func() {
+	sec := uint64(0)
+
 	for now := range time.Tick(time.Second) {
-		newTime := time.Now().Add(time.Second * time.Duration(timeAddition))
-		fmt.Println(now, ": Setting system date to ", newTime)
-		err := SetSystemDateUsingExec(newTime)
-		if err != nil {
-			fmt.Printf("Error: %s", err.Error())
+		sec++
+		if sec >= interval {
+			sec = 0
+			newTime := time.Now().Add(time.Second * time.Duration(timeAddition))
+			fmt.Println(now, ": Setting system date to ", newTime)
+			err := SetSystemDateUsingExec(newTime)
+			if err != nil {
+				fmt.Printf("Error: %s", err.Error())
+			}
 		}
 	}
 	//}()

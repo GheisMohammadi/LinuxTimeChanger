@@ -11,9 +11,9 @@ type Configuration struct {
 	TimeAddition uint64
 }
 
-func PrepareConfigs() (Configuration, error) {
+func PrepareConfigs(configFile string) (Configuration, error) {
 
-	file, _ := os.Open("config.json")
+	file, _ := os.Open(configFile)
 	defer file.Close()
 	decoder := json.NewDecoder(file)
 	configuration := Configuration{}
